@@ -61,15 +61,20 @@ Insert `127.0.1.1 myhostname.localdomain myhostname`
     # nano /boot/loader/loader.conf
 
 >default  ...............-*
+
 >timeout  4
+
 >editor   0
 
     # blkid -s PARTUUID -o value /dev/mmcblk0p2 > /boot/loader/entries/arch.conf
     # nano /boot/loader/entries/arch.conf
 
 >title          Arch Linux
+
 >linux          /vmlinuz-linux
+
 >initrd         /initramfs-linux.img
+
 >options        root=PARTUUID=........-....-....-....-............ rw video=LVDS-1:d fbcon=rotate:3
 
     (# pacman -S zsh grml-zsh-config)
@@ -93,9 +98,13 @@ Replace your desired username:
 Search for these two lines and change the marked parts:
 
 >DefinitionBlock ("", "DSDT", 2, "\_ASUS\_", "Notebook", *0x107200A*)
+
 >  ...
+
 >Device (SDHB)
+
 >{
+
 >    Name (*WADR*, Zero)  // \_ADR: Address
 
     # iasl -tc dsdt.dsl
