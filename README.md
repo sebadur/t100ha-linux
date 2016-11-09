@@ -2,8 +2,10 @@
 This is a fully documented how-to install Arch Linux on your very own Asus T100HA. Do not use this for other hardware.
 This guide comes *WITHOUT ANY WARRANTY*, use it on your own risk! I am not responsible for any damaged caused.
 
+Still, there are some serious issues with this hardware. Look into https://github.com/sebadur/t100ha-linux/issues for details.
+
 ## Use Arch Linux
-You will need the *most* recent Linux kernel and Arch Linux is my recommended option for that.
+You will need a *recent* (working scince about version 4.7) Linux kernel and Arch Linux is my recommended option for that. This guide assumes you to use Arch. Otherwise you may be able to skip some the initial steps, but experience some issues not treated with here.
 Install it to an USB-thumb-drive:
 
     dd if=arch.iso of=/dev/sdX status=progress
@@ -14,7 +16,7 @@ Back up your data from Windows, if you need to.
 At boot press `[F2]`, then go to `Security -> Secure Boot Menu` and choose the option `Disabled`.
 This is needed to enable EFI boot for the up-to-date (unknown signed) kernel. Leave with `[F10] -> [Return]`.
 At reboot press `[Esc] -> choose USB-drive`. In the bootloader press `[E]` and append
-`nomodeset fbcon=rotate:3` to the vmlinuz starting options. Start with `F10`.
+`nomodeset fbcon=rotate:3` to the vmlinuz starting options. Start with `[Enter]`.
 
 ## Android Tethering
 You will need internet access in order to install Arch Linux. As the wifi driver will be installed later,
@@ -27,15 +29,30 @@ tethering has to be used (or some other internet options):
 
     (# loadkeys de-latin1)
     # timedatectl set-ntp true
-Use fdisk to format your partitions as follows: `/dev/mmcblk0`: _p1_: 512M EFI, _p2_: 53.8G ext4, _p3_: 4G swap
+    # fdisk /dev/mmcblk0
 
-    # mkfs.ext4 /dev/mmcblk0p2
-    # swapon /dev/mmcblk0p3
-    # mount /dev/mmcblk0p2 /mnt
+Use the following commands within fdisk:
+
+- `d` as often, as needed
+- `n`, _default_, _default_, `+512M`
+- `t`, `1`
+- `n`, _default_, _default_, `+4G`
+- `t`, _default_, `19`
+- `n`, _default_, _default_, _default_
+- `w`
+
+Proceed with:
+
+    # mkfs.fat /dev/mmcblk0p1
+    # mkswap /dev/mmcblk0p2
+    # mkfs.ext4 /dev/mmcblk0p3
+    # swapon /dev/mmcblk0p2
+    # mount /dev/mmcblk0p3 /mnt
     # mkdir /mnt/boot
     # mount /dev/mmcblk0p1 /mnt/boot
     # pacstrap /mnt base
     # genfstab -U /mnt >> /mnt/etc/fstab
+    # arch-chroot /mnt
     
 Replace Region and City to yours:
 
@@ -58,16 +75,10 @@ Insert `127.0.1.1 myhostname.localdomain myhostname`
 
     # passwd
     # bootctl --path=/boot install
-    # nano /boot/loader/loader.conf
-
->default  ...............-*
-
->timeout  4
-
->editor   0
-
-    # blkid -s PARTUUID -o value /dev/mmcblk0p2 > /boot/loader/entries/arch.conf
+    # blkid -s PARTUUID -o value /dev/mmcblk0p3 > /boot/loader/entries/arch.conf
     # nano /boot/loader/entries/arch.conf
+
+Manipulate the content, so it looks like:
 
 >title          Arch Linux
 
@@ -131,16 +142,3 @@ Recommended: Gnome is working fast and well at this netbook.
 
     # pacman -S gnome gnome-extra
     # systemctl enable gdm
-
-## Issues
-Still, there are some issues:
-
-- Sleep and Suspend (S1 to S3) not working properly. This is a problem, because every time you close the netbook lid it sends the machine to suspend. This should be turned off, until a solution is found. It is for sure another wrong configuration in the ACPI DSDT. By the way: It may help to update the EFI version firmware, if you can't get wifi working, just don't forget to repeat the WLAN-configuration steps again.
-
-- Background Brightness fixed at 100%. There are people claiming solutions for that, that have to be verified first.
-
-- Sound: Not working this way, but also called fixable.
-
-- Bluetooth: Not tested.
-
-- Cameras: Not working.
